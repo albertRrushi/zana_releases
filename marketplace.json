@@ -1,0 +1,35 @@
+{
+  "name": "Zana Community Registry",
+  "plugins": {
+    "jira": {
+      "version": "0.1.0",
+      "description": "Jira dashboard and read-only issue lookup via acli.",
+      "category": "integrations",
+      "tags": ["jira", "atlassian", "dashboards"],
+      "source": {
+        "type": "git",
+        "url": "https://github.com/albertRrushi/jira-plugin.git"
+      }
+    },
+    "github": {
+      "version": "0.2.0",
+      "description": "GitHub inside Zana: a sidebar dashboard plus commands that read repos, pull requests, issues, commits and review queues through your own gh CLI.",
+      "category": "integrations",
+      "tags": ["github", "pull-requests", "issues", "commits", "dashboards"],
+      "source": {
+        "type": "git",
+        "url": "https://github.com/albertRrushi/zana_github.git"
+      }
+    },
+    "devops": {
+      "version": "0.1.0",
+      "description": "Azure DevOps inside Zana: a sidebar dashboard plus read-only commands that read projects, repositories, pull requests and work items through your own az CLI.",
+      "category": "integrations",
+      "tags": ["azure", "devops", "pull-requests", "work-items", "dashboards"],
+      "source": {
+        "type": "git",
+        "url": "https://github.com/albertRrushi/devops-plugin.git"
+      }
+    }
+  }
+}
