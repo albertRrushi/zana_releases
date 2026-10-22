@@ -183,10 +183,10 @@ Plugins add **sidebar dashboards, commands, event hooks, reusable actions, sched
 
 - **Installed tab** — enable/disable; uninstall is user-scope only (bundled plugins say "disable instead").
 - **Browse tab** — search, permission preview (exact CLI pins, network hosts, Zana scopes), Install/Update. Update policy `plugins.auto_update`: `off` / `notify` (default) / `auto`.
-- **Install sources** — one-click catalog entries (e.g. `jira`, `github`, `devops`), or **Install from Git**: any public `https://…​.git` (or SSH with agent) + optional `ref` (branch/tag/commit) + optional `path` subdir for monorepos. Every install is validated before it lands in `~/.zana/plugins/`; `.git`/`node_modules` are stripped, provenance is kept, and a user copy shadows the bundled one.
+- **Install sources** — one-click catalog entries (e.g. `jira`, `github`), or **Install from Git**: any public `https://…​.git` (or SSH with agent) + optional `ref` (branch/tag/commit) + optional `path` subdir for monorepos. Every install is validated before it lands in `~/.zana/plugins/`; `.git`/`node_modules` are stripped, provenance is kept, and a user copy shadows the bundled one.
 - **Trust model:** plugins run fully trusted in the main process — permissions are a consent surface, not a sandbox. Only install plugins you trust; auto-updates run only under opt-in `auto`.
 
-Live examples in this repo's `marketplace.json`: [jira-plugin](https://github.com/albertRrushi/jira-plugin) (dashboard + read-only lookup), [zana_github](https://github.com/albertRrushi/zana_github) (sidebar dashboard + PR/issue/commit/review-queue commands via your own `gh` CLI), [devops-plugin](https://github.com/albertRrushi/devops-plugin) (same shape for Azure DevOps via `az` CLI).
+Live examples in this repo's `marketplace.json`: [jira-plugin](https://github.com/albertRrushi/jira-plugin) (dashboard + read-only lookup), [zana_github](https://github.com/albertRrushi/zana_github) (sidebar dashboard + PR/issue/commit/review-queue commands via your own `gh` CLI).
 
 ### Build one in minutes (hostApi v0.2)
 

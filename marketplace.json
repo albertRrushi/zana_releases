@@ -20,16 +20,6 @@
         "type": "git",
         "url": "https://github.com/albertRrushi/zana_github.git"
       }
-    },
-    "devops": {
-      "version": "0.1.0",
-      "description": "Azure DevOps inside Zana: a sidebar dashboard plus read-only commands that read projects, repositories, pull requests and work items through your own az CLI.",
-      "category": "integrations",
-      "tags": ["azure", "devops", "pull-requests", "work-items", "dashboards"],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/albertRrushi/devops-plugin.git"
-      }
     }
   }
 }
