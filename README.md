@@ -6,17 +6,21 @@
 
 Zana is a desktop task runner for AI coding work. Instead of babysitting one chat window in one repo, you define **Projects** (folders on disk) and **Tasks** (prompts to run in those folders), and Zana executes them through your preferred AI backend, tracks their state, chains them together, and lets both you and other agents drive everything via UI or API.
 
-> All screenshots below show the app in dark mode with dummy/sample data for illustration — no real projects, code, or usage figures.
+> All screenshots below are mockups with fictional/demo data for illustration — no real projects, code, or usage figures.
 
-## Screenshots (dark mode, dummy data)
+## Screenshots (light mode, mock data)
 
-| Projects — four-column task board | Task detail — chat + diff |
+| Projects — task board | Task detail — chat |
 |---|---|
-| ![Projects view in dark mode with dummy projects and tasks](docs/screenshots/projects.png) | ![Task detail view in dark mode with dummy chat and a selected file diff](docs/screenshots/task-detail.png) |
+| ![Projects task board mockup with fictional demo projects and tasks](docs/screenshots/projects.png) | ![Task detail mockup with fictional demo chat](docs/screenshots/task-detail.png) |
 
-| Memories — connected memory graph | Settings → Providers — Claude Agent stats |
+| Memories — memory graph | Marketplace — plugin catalog |
 |---|---|
-| ![Memories graph in dark mode with connected dummy memory nodes](docs/screenshots/memories.png) | ![Providers settings in dark mode with dummy Claude Agent usage statistics](docs/screenshots/providers.png) |
+| ![Memories graph mockup with fictional demo memory nodes](docs/screenshots/memories.png) | ![Marketplace catalog mockup with fictional demo plugin entries](docs/screenshots/marketplace.png) |
+
+| Settings → Providers — Claude Agent defaults |
+|---|
+| ![Providers settings mockup with fictional Claude Agent defaults](docs/screenshots/providers.png) |
 
 ---
 
