@@ -29,9 +29,10 @@ Zana is a desktop task runner for AI coding work. Instead of babysitting one cha
 - **Runs coding tasks in the background.** Fire off "fix login bug", "add tests for X", "refactor Y" and keep working. Watch progress in the In Progress panel instead of a blocked terminal.
 - **Supports multiple AI providers behind one interface.** OpenCode (chat/SSE), Claude Agent (headless SDK), and Codex. Pick per task; switch defaults in Settings.
 - **Chains tasks and actions.** Task A → Task B (`next_action`), with `none` (just run next) or `forward` (pass A's output into B's prompt) modes, plus auto-run and loop counters. Actions run shell commands; triggers/scheduler fire them on schedules or events.
-- **Keeps a memory graph.** Typed memory nodes (fact/preference/rule/decision/context/episodic) with confidence 0–1, linked by supports/contradicts/refines/supersedes/relates_to — project-scoped plus global, visualized as a graph, searchable by you or an agent.
+- **Keeps a memory graph — and distills it automatically.** Typed memory nodes (fact/preference/rule/decision/context/episodic) with confidence 0–1, linked by supports/contradicts/refines/supersedes/relates_to — project-scoped plus global, visualized as a graph, searchable by you or an agent. When a task finishes, Zana distills durable lessons out of the transcript into new nodes (see §5) so the next task starts smarter.
 - **Is automatable.** A local HTTP API server (loopback only, token-auth) plus a bundled stdio MCP server expose projects, tasks, and memory as tools (`zana_*`, `memory_*`) so agents can create, run, monitor, and retry tasks for you.
 - **Shows real repo state.** Built-in git status/diff viewer, worktree support, and file-change events (no polling freezes) so you can review what the agent actually changed.
+- **Extends in minutes via plugins + Marketplace.** Dashboards, commands, hooks, actions, triggers, and skills ship as tiny plugins (5 files max) you install from the Marketplace or any git URL — see §6. No fork required.
 
 In short: Zana turns ad-hoc AI chats into **tracked, repeatable, chainable units of work**.
 
@@ -112,7 +113,7 @@ Right/bottom: git status + diff file explorer ("Send to LLM" routes into the ses
 7. Answer any **permission/question prompts** in the banner above the composer.
 8. When it reaches `done`, review the diff in the file explorer, then Reset (clones the chain fresh) or send a follow-up to iterate.
 
-Run/Stop/Reset/Send are also available headlessly via API/MCP (see §6).
+Run/Stop/Reset/Send are also available headlessly via API/MCP (see §8).
 
 ### 4.3 Chain tasks (review → fix loops, multi-step plans)
 
@@ -124,12 +125,19 @@ Example: Task A "implement feature" → next action Task B "review the diff and 
 
 Use `forward` when the next step needs the previous answer; `none` for fire-and-forget sequencing. Trigger-next fires the chain manually on demand.
 
-### 4.4 Memories and system prompts
+### 4.4 Memories, distillation, and system prompts
 
-- Save durable facts ("repo uses pnpm", "always run `npm test` before marking done") as typed memory nodes with confidence. Link related nodes; reinforce on confirmation, contradict instead of deleting. Agents retrieve them via `memory_search` (keyword + 1-hop expansion, ranked by match, confidence and graph degree).
+**Manual memories:** save durable facts ("repo uses pnpm", "always run `npm test` before marking done") as typed memory nodes with confidence. Link related nodes; reinforce on confirmation, contradict instead of deleting. Agents retrieve them via `memory_search` (keyword + 1-hop expansion, ranked by match, confidence and graph degree).
+
 - Explore project or global memories as a connected graph (node size = confidence, color = type, edge style = relation) with search, type and confidence filters.
 - Promote useful project memories to global so every project benefits.
 - Put standing instructions in System Prompts rather than repeating them in every task prompt.
+
+**Automatic distillation (the compound-interest part):** when a task reaches `done`, Zana extracts durable, reusable knowledge from the transcript and stores it as new memory nodes — tagged `auto-distilled` so you can tell them apart from hand-written ones. You don't have to remember to write things down.
+
+What gets distilled: stack choices, repo conventions, gotchas, user preferences, and decisions that future tasks in the same project (or globally) should reuse. One-off chatter is skipped; only repeat-value facts become nodes, each with a type, confidence, tags, and links to related nodes.
+
+Lifecycle is the same as manual memories: reinforce what proves true, decay what goes stale, contradict (don't just delete) what turns out wrong, set `expires_at` for time-bound facts. See §5 for controls.
 
 ### 4.5 Actions, triggers, scheduler
 
@@ -143,7 +151,110 @@ Plugins can ship **skills** — extra instructions the assistant loads on demand
 
 ---
 
-## 5. Providers at a glance
+## 5. Memory distillation — knowledge that compounds automatically
+
+Memories in Zana are typed nodes + links:
+
+- **Types:** `fact` / `preference` / `rule` / `decision` / `context` / `episodic`.
+- **Confidence:** `0–1` (`0` = no longer valid; higher = reinforced, lower = degraded). Graph node size reflects it.
+- **Relations:** `supports` / `contradicts` / `refines` / `supersedes` / `relates_to`.
+- **Scope:** `project_id NULL` = global. Listing with a project returns project + global merged. `GET /memory/graph` serves nodes + edges for the graph view.
+
+Distillation writes to that same graph, so manual and automatic knowledge share search, UI, and API:
+
+1. Task finishes (`done`) → Zana proposes durable nodes from the transcript.
+2. Nodes land project-scoped (promote to global later if they prove generally useful).
+3. You review them in **Memories** like any other node — reinforce, adjust confidence, link, contradict, delete, or set `expires_at`.
+4. Next task (yours or an agent's via `memory_search` / `memory_store` / `memory_adjustconfidence`) retrieves them automatically.
+
+**Controls:**
+
+- Global default in **Settings**; per-project override in Project settings (gear icon) or at creation time in Add Project. Leaving override off follows the global value, including future changes; turning it on reveals the per-project choice.
+- Headless: `distill_enabled: 1` (default) / `0` (opt out) on project create.
+- Deleting a project optionally migrates its memories to global or hard-deletes them — distilled knowledge is never silently lost.
+
+> Tip: distillation replaces "remember to update the docs" with "correct the memory once". When Zana gets something slightly wrong, use reinforce/contradict instead of deleting — the link history is what makes the graph smarter over time.
+
+---
+
+## 6. Marketplace & plugins — extend Zana in ~5 files
+
+Plugins add **sidebar dashboards, commands, event hooks, reusable actions, schedules, and assistant skills** — without forking Zana. The Marketplace view is the catalog:
+
+- **Installed tab** — enable/disable; uninstall is user-scope only (bundled plugins say "disable instead").
+- **Browse tab** — search, permission preview (exact CLI pins, network hosts, Zana scopes), Install/Update. Update policy `plugins.auto_update`: `off` / `notify` (default) / `auto`.
+- **Install sources** — one-click catalog entries (e.g. `jira`, `github`, `devops`), or **Install from Git**: any public `https://…​.git` (or SSH with agent) + optional `ref` (branch/tag/commit) + optional `path` subdir for monorepos. Every install is validated before it lands in `~/.zana/plugins/`; `.git`/`node_modules` are stripped, provenance is kept, and a user copy shadows the bundled one.
+- **Trust model:** plugins run fully trusted in the main process — permissions are a consent surface, not a sandbox. Only install plugins you trust; auto-updates run only under opt-in `auto`.
+
+Live examples in this repo's `marketplace.json`: [jira-plugin](https://github.com/albertRrushi/jira-plugin) (dashboard + read-only lookup), [zana_github](https://github.com/albertRrushi/zana_github) (sidebar dashboard + PR/issue/commit/review-queue commands via your own `gh` CLI), [devops-plugin](https://github.com/albertRrushi/devops-plugin) (same shape for Azure DevOps via `az` CLI).
+
+### Build one in minutes (hostApi v0.2)
+
+A plugin is at most 5 files — only `zana/plugin.zana.json` is Zana-specific:
+
+```
+my-plugin/
+  plugin.json               # identity only (Agent Plugins v1, closed schema)
+  zana/plugin.zana.json     # Zana extension: views/commands/hooks/actions/triggers/settings
+  zana/main.js              # activate() + data/command methods (~20 lines to start)
+  skills/<name>/SKILL.md    # optional, portable agent instructions
+  mcp.json                  # optional, portable MCP servers
+```
+
+1. **Declare** in `plugin.json`:
+```json
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "my-plugin",
+  "version": "0.1.0",
+  "description": "One line.",
+  "extensions": { "zana": "./zana/plugin.zana.json" }
+}
+```
+
+2. **Extend** in `zana/plugin.zana.json`:
+```json
+{
+  "$schema": "https://zana.ai/schemas/plugin.zana.v1.json",
+  "hostApi": "^0.2",
+  "main": "./main.js",
+  "activationEvents": ["onView:my-view", "onCommand:my-plugin.sync"],
+  "contributes": {
+    "views": [{ "id": "my-view", "title": "My View", "slot": "sidebar-bottom", "icon": "Plug" }],
+    "commands": [{ "command": "my-plugin.sync", "title": "Sync now" }]
+  },
+  "permissions": { "network": [], "fs": "none", "zana": ["tasks:read", "notify"] }
+}
+```
+
+3. **Code** in `zana/main.js`:
+```js
+async function activate(zana) {
+  zana.commands.register('my-plugin.sync', async () => {
+    const tasks = await zana.tasks.list();
+    zana.notify.toast(`Synced ${tasks.length} tasks`);
+    return { ok: true, count: tasks.length };
+  });
+}
+async function myViewData() {
+  return {
+    title: 'My View',
+    sections: [{ title: 'Items', rows: [{ label: 'KEY-1', value: 'Do a thing' }] }],
+    actions: [{ label: 'Sync now', command: 'my-plugin.sync' }]
+  };
+}
+module.exports = { activate, myViewData };
+```
+
+That's a working sidebar view + palette/API/MCP command. From there add what you need — `hooks` with a tiny `when` grammar (`status == 'failed'`), `actions` (reusable shell steps for chaining), `triggers` (`every 15m` / `at 09:30` / `manual`), `settings`/`secrets`, dashboard views (`getDashboards` / `widgetData` / `saveDashboards` + the 4 `dashboard-get` / `widget-catalog` / `widget-preview` / `dashboard-save` commands agents navigate by), and `skills/` so the Assistant picks up your workflow automatically.
+
+Host guarantees that keep plugins safe to write: lazy activation (your code loads only when its view/command/event fires), 5s budget per call (failures log to Task Events, never crash the host), strict validation (`node scripts/validate-plugin.js ./my-plugin` → `PASS`/`FAIL` with fix hints), pinned CLI spawning (`proc.exec` with allowlisted binaries, no shells), and per-plugin `kv` + `secrets` storage.
+
+Reference to copy from: the [jira-plugin](https://github.com/albertRrushi/jira-plugin) repo — dashboard view + commands + settings + skill + icon + templates. Ask Zana's Assistant to scaffold from it ("build a plugin that…") and it loads the built-in `zana-plugin-builder` skill and writes the files for you.
+
+---
+
+## 7. Providers at a glance
 
 |  | OpenCode | Claude Agent | Codex |
 |---|---|---|---|
@@ -156,7 +267,7 @@ Plugins can ship **skills** — extra instructions the assistant loads on demand
 
 ---
 
-## 6. Automating Zana — API server + MCP
+## 8. Automating Zana — API server + MCP
 
 The app embeds an HTTP API on port `4097` (loopback-only by default, opt-in network exposure, persistent per-app Bearer tokens generated in the **API Server** view and passed as `ZANA_TOKEN` to the MCP server). Toggle it and inspect live requests in the **API Server** view.
 
@@ -177,7 +288,7 @@ The Windows installer offers an **Include MCP server** checkbox (on by default):
 
 ---
 
-## 7. Why this approach works
+## 9. Why this approach works
 
 1. **One inbox for all AI work.** Parallel tasks across repos are visible as rows with states, not lost across terminal windows. You (or an agent) always know what is running, blocked, or done.
 2. **Provider-agnostic without lowest-common-denominator UX.** The abstraction is at the execution layer, with every provider streaming into the same chat experience.
@@ -189,8 +300,9 @@ The Windows installer offers an **Include MCP server** checkbox (on by default):
 
 ---
 
-## 8. Tips and troubleshooting
+## 10. Tips and troubleshooting
 
+- **Marketplace install fails validation** → run `node scripts/validate-plugin.js ./my-plugin` in the Zana app repo; common fixes: command prefix must equal plugin name (`my-plugin.*`), every `onView:`/`onCommand:` must reference a declared contribution, `main` is required when commands/hooks exist.
 - **MCP says "Zana app is not running"** → launch Zana and check the API Server view is started.
 - **Provider/model dropdown stale** → Settings → Provider Defaults; stale values render instead of blanking so you can correct them.
 - **Second launch does nothing** → single-instance lock: it focuses the running window instead of fighting over ports/DB. That's intentional.
