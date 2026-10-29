@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.0
+
+- New Voice view: offline text-to-speech reads assistant replies aloud through a Listen button under each reply; voices download on demand and work fully offline afterwards.
+- Optional auto-read: when enabled in Voice defaults, the last reply is read aloud automatically when a task you are viewing finishes, and when the assistant chat finishes responding. Background completions stay silent.
+- Voice defaults (voice, speed, speaker, auto-read) are edited locally with explicit Save/Reset buttons.
+- New Dictation section in the Voice view: offline speech-to-text with downloadable engine and models; includes a test pad with live transcription and copy.
+- Mic button in chat inputs and the Add Task dialog: dictation transcribes live as you speak and inserts the text at the cursor; pausing auto-sends the message when auto-send is enabled, otherwise you press send yourself.
+- Auto-send for dictation is a Voice-view setting (on by default); recordings are transcribed on the fly and never stored.
+
+## 0.2.8
+
+- Fixed OpenCode failing to start automatically on Windows after reboot.
+
 ## 0.2.3
 
 - Removed Antigravity as a provider option.
