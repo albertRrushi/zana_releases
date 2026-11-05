@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- New live progress for connected apps and integrations: you can now watch a running task as it happens, with text appearing as it's generated and a clear signal when the task finishes. Checking on a finished task works just as before, returning its saved details.
+- Smoother follow-ups with Claude Agent tasks: messages you send while a task is still working now feed straight into the ongoing work, instead of piling up and arriving late.
+- More reliable background work with Claude Agent tasks: tasks that kick off things in the background no longer fail or mix up their replies because of it.
+- Security upkeep: updated core components to clear all reported vulnerabilities.
+
 ## 0.3.0
 
 - New Voice view: offline text-to-speech reads assistant replies aloud through a Listen button under each reply; voices download on demand and work fully offline afterwards.
