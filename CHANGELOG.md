@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0
+
+- New Gateway view that automatically sends each new task to the best provider, voice, and helper for the job, with a plain-language explanation of why that choice was made.
+- Savings view showing projected cost savings from automatic routing, with totals across all routed tasks.
+- Custom routing rules: pin specific kinds of work to a preferred provider, or narrow down the allowed choices, using flexible condition blocks (all / any / none logic, nested groups) that can skip questions already answered.
+- Gateway test area to try routing rules and preview the chosen provider and reasoning before running a real task.
+- Optional automatic decision helper behind Gateway routing that can be switched on or off; pinned rules keep working even when it is off.
+- Per-provider reasoning strength control, available in settings, the assistant, new-task setup, and automatic routing.
+- Claude Agent improvements: live model and helper lists with display names, a refresh button, a single default entry, and follow-up messages that steer the ongoing work directly in both task and assistant views.
+- Smoother dictation and voice: microphone recording moved off the main thread for reliability, voice features now grouped behind one opt-in switch, listening and dictation buttons appear only when their feature is enabled.
+- Clearer task flow: the Run button shows only for brand-new tasks and the first message starts the task; the Done list shows the last 2 days with older items behind a switch.
+- API Server view: call history is now a terminal-style log with request and response previews, capped for size.
+
 ## 0.4.0
 
 - New live progress for connected apps and integrations: you can now watch a running task as it happens, with text appearing as it's generated and a clear signal when the task finishes. Checking on a finished task works just as before, returning its saved details.
